@@ -1,2 +1,2 @@
-# SO
+# OS
 Operative system subject (UCM)
