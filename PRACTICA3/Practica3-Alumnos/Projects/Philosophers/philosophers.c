@@ -21,21 +21,19 @@ void think(int i) {
     printf("Philosopher %d thinking... \n" , i);
     sleep(random() % 10);
     printf("Philosopher %d stopped thinking!!! \n" , i);
-
 }
 
 void eat(int i) {
     printf("Philosopher %d eating... \n" , i);
     sleep(random() % 5);
     printf("Philosopher %d is not eating anymore!!! \n" , i);
-
 }
 
 void toSleep(int i) {
     printf("Philosopher %d sleeping... \n" , i);
     sleep(random() % 10);
     printf("Philosopher %d is awake!!! \n" , i);
-    
+
 }
 
 void* philosopher(void* i)
@@ -43,19 +41,25 @@ void* philosopher(void* i)
     int nPhilosopher = (int)i;
     int right = nPhilosopher;
     int left = (nPhilosopher - 1 == -1) ? NR_PHILOSOPHERS - 1 : (nPhilosopher - 1);
+
     while(1)
     {
-        
         think(nPhilosopher);
         
         /// TRY TO GRAB BOTH FORKS (right and left)
+        pthread_mutex_trylock(&forks[right]);
+        pthread_mutex_trylock(&forks[left]);
 
         eat(nPhilosopher);
         
+        pthread_mutex_unlock(&forks[right]);
+        pthread_mutex_unlock(&forks[left]);
+
         // PUT FORKS BACK ON THE TABLE
         
         toSleep(nPhilosopher);
    }
+
 
 }
 

@@ -3,56 +3,73 @@
 #include <stdlib.h>
 #include <sys/sem.h>
 #include <semaphore.h>
+#include <stdbool.h>
 
 sem_t sem;
 int total_sum = 0;
 
 void * partial_sum(void * arg) {
-  sem_wait(&sem);
+
   int j = 0;
   int ni=((int*)arg)[0];
   int nf=((int*)arg)[1];
 
   for (j = ni; j <= nf; j++)
+  {
+	sem_wait(&sem);
     total_sum = total_sum + j;
-
-  sem_post(&sem);
-  //pthread_exit(0);
+    sem_post(&sem);
+  }
+  pthread_exit(0);
 }
 
 int main(int argc, char* argv[])
 {
-  //printf("%s ", argv[2]);
-  // argv[1] y argv[2] tienen el numero
-  // de hilos a usar y el limite de la suma.
+  bool impar;
+  int hilos, limite, tramo;
+  sem_init(&sem,0,1); //sem_init (ref a semaforo, 0- No compartido entre procesos, valor inicializacion (solo un hilo))
+  pthread_t th1, th2, th3, th4, th5;
+  int num1[2], num2[2], num3[2], num4[2], num5[2];
 
-  sem_init(&sem,0,1);
-  pthread_t th1, th2;
+  sscanf(argv[1], "%d",&hilos);
+  sscanf(argv[2], "%d", &limite);
 
-  int limite = (int) argv[2];
-  int hilos = (int) argv[1];
+  printf("Hilos: %d \n", hilos);
+  printf("Limite: %d \n\n", limite);
 
-  printf("hilos: %d \n", hilos);
-  printf("limite: %d \n", limite);
+  tramo = (limite / hilos);
+  impar = (tramo % 2 == 1);
 
-  int limiteprimero = limite / hilos - 1;
-  int limitesegundo =  limite/hilos;
+  num1[0] = 1; num1[1] = tramo;
 
-  printf("Limiteprimero: %d \n", limiteprimero);
-  printf("LimiteSegundo: %d \n", limitesegundo);
+  num2[0] = tramo + 1; num2[1] = (2 * tramo);
+  if(impar && hilos == 2) {num2[0] = tramo + 1; num2[1] = (2 * tramo) + 1;}
 
+  num3[0] = (2 * tramo) + 1; num3[1] = (3 * tramo);
+  if(impar && hilos == 3) {num3[0] = (2 * tramo) + 1; num3[1] = (3 * tramo) + 1;}
 
-  int num1[2]={  1,  limiteprimero};
-  int num2[2]={limitesegundo, *argv[2]};
+  num4[0] = (3 * tramo) + 1; num4[1] = (4 * tramo);
+  if(impar && hilos == 4) {num4[0] = (3 * tramo) + 1; num4[1] = (4 * tramo) + 1;}
+
+  num5[0] = (4 * tramo) + 1; num5[1] = (5 * tramo);
+  if(impar && hilos == 5) {num5[0] = (4 * tramo) + 1; num5[1] = (5 * tramo) + 1;}
 
 
   /* Two threads are created */
+
   pthread_create(&th1, NULL, partial_sum, (void*)num1);
-  pthread_create(&th2, NULL, partial_sum, (void*)num2);
+  if (hilos > 1) pthread_create(&th2, NULL, partial_sum, (void*)num2);
+  if (hilos > 2) pthread_create(&th3, NULL, partial_sum, (void*)num3);
+  if (hilos > 3) pthread_create(&th4, NULL, partial_sum, (void*)num4);
+  if (hilos > 4) pthread_create(&th5, NULL, partial_sum, (void*)num5);
 
   /* the main thread waits until both threads complete */
   pthread_join(th1, NULL);
-  pthread_join(th2, NULL);
+  if (hilos > 1) pthread_join(th2, NULL);
+  if(hilos > 2) pthread_join(th3, NULL);
+  if(hilos > 3) pthread_join(th4, NULL);
+  if(hilos > 4) pthread_join(th5, NULL);
+
   sem_destroy(&sem);
 
   printf("total_sum=%d and it should be 50005000\n", total_sum);
