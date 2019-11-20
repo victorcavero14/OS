@@ -1,3 +1,8 @@
+/*
+	Víctor Manuel Cavero Gracia - DNI: 45355080T
+	Iván Fernández Sánchez - DNI: 52902115E
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

@@ -1,3 +1,8 @@
+/*
+	Víctor Manuel Cavero Gracia - DNI: 45355080T
+	Iván Fernández Sánchez - DNI: 52902115E
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -23,7 +28,14 @@ pthread_t usuario[MAX_USUARIOS];
 
 //Added para proteger las variables compartidas y las variables condicionales
 
-sem_t sem;
+pthread_mutex_t cerrojo;
+//sem_t sem;
+
+//var condicionales
+
+pthread_cond_t bus_en_parada = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t usuarios_pueden_subir = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t usuarios_pueden_bajar = PTHREAD_MUTEX_INITIALIZER;
 
 // personas que desean subir en cada parada
 int esperando_parada[N_PARADAS] = {2,0,1,1,0}; //= {0,0,...0};
@@ -84,26 +96,34 @@ void Autobus_En_Parada(){
 	/* Ajustar el estado y bloquear al autobús hasta que no haya pasajeros que
 	quieran bajar y/o subir la parada actual. Después se pone en marcha */
 
-	sem_wait(&sem);
-	estado = EN_PARADA;
-	sem_post(&sem);
+	pthread_mutex_lock(&cerrojo);
+
 	printf("---- Autobus en parada %d.\n", parada_actual);
-	sleep(2); //tiempo en parada del autobus
+	estado = EN_PARADA;
+
+	pthread_cond_broadcast(&bus_en_parada);
+	//pthread_cond_broadcast(&usuarios_pueden_subir);
+	//pthread_cond_broadcast(&usuarios_pueden_bajar);
+
+	pthread_mutex_unlock(&cerrojo);
+
+	sleep(33333);
+
 }
 
 void Conducir_Hasta_Siguiente_Parada(){
 	/* Establecer un Retardo que simule el trayecto y actualizar numero de parada */
-	sem_wait(&sem);
+
+	pthread_mutex_lock(&cerrojo);
+
 	estado = EN_RUTA;
-	sem_post(&sem);
+	parada_actual += 1;
+	if(parada_actual >= N_PARADAS) parada_actual = 0;
+
+	pthread_mutex_unlock(&cerrojo);
 
 	printf("Circulando...\n");
 	sleep(rand() % 8);
-
-	sem_wait(&sem);
-	parada_actual += 1;
-	if(parada_actual >= N_PARADAS) parada_actual = 0;
-	sem_post(&sem);
 
 }
 
@@ -113,15 +133,27 @@ void Subir_Autobus(int id_usuario, int origen){
 	proporcionar información de depuración */
 
 	int subido = 0;
+
 	while(subido == 0)
 	{
-		if(estado == EN_PARADA && parada_actual == origen && n_ocupantes < MAX_USUARIOS)
-		{
-			sem_wait(&sem);
-			n_ocupantes += 1;
-			subido = 1;
-			sem_post(&sem);
-		}
+	while(estado == EN_RUTA) pthread_cond_wait(&bus_en_parada, &cerrojo);
+
+	//pthread_cond_wait(&bus_en_parada, &cerrojo);
+	//pthread_cond_wait(&usuarios_pueden_subir, &cerrojo);
+
+	printf("Estado: %d\n",estado);
+	printf("Parada actual: %d\n",parada_actual);
+	printf("Origen: %d\n",origen);
+
+	if(estado == EN_PARADA && parada_actual == origen && n_ocupantes < MAX_USUARIOS)
+	{
+		pthread_mutex_lock(&cerrojo);
+
+		n_ocupantes += 1;
+		subido = 1;
+
+		pthread_mutex_unlock(&cerrojo);
+	}
 	}
 
 	printf("Usuario %d ha subido al autobus.\n", id_usuario);
@@ -135,12 +167,17 @@ void Bajar_Autobus(int id_usuario, int destino){
 	int llegar = 0;
 	while(llegar == 0)
 	{
+		//pthread_cond_wait(&bus_en_parada, &cerrojo);
+		pthread_cond_wait(&usuarios_pueden_bajar, &cerrojo);
+
 		if(estado == EN_PARADA && parada_actual == destino)
 		{
-			sem_wait(&sem);
+			pthread_mutex_lock(&cerrojo);
+
 			n_ocupantes -= 1;
 			llegar = 1;
-			sem_post(&sem);
+
+			pthread_mutex_unlock(&cerrojo);
 		}
 	}
 
@@ -154,7 +191,9 @@ int main(int argc, char *argv[]) {
 	// autobus, el numero de usuarios y el numero de paradas
 	// Crear el thread Autobus
 
-	sem_init(&sem,0,1); //inicializar el semaforo
+	//sem_init(&sem,0,1); //inicializar el semaforo
+	pthread_mutex_init(&cerrojo, NULL);
+
 	pthread_create(&autobus,NULL,thread_autobus, (void*)j); //thread bus
 
 	for (i = 0; i < USUARIOS; i++) 	// Crear thread para el usuario i
@@ -167,8 +206,8 @@ int main(int argc, char *argv[]) {
 
 	pthread_join(autobus, NULL);
 
-	sem_destroy(&sem);
+	pthread_mutex_destroy(&cerrojo);
+	//sem_destroy(&sem);
 
 	return 0;
 }
-

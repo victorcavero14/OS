@@ -1,3 +1,8 @@
+/*
+	Víctor Manuel Cavero Gracia - DNI: 45355080T
+	Iván Fernández Sánchez - DNI: 52902115E
+*/
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,9 +32,10 @@ int main(int argc, char* argv[])
 {
   bool impar;
   int hilos, limite, tramo;
-  sem_init(&sem,0,1); //sem_init (ref a semaforo, 0- No compartido entre procesos, valor inicializacion (solo un hilo))
   pthread_t th1, th2, th3, th4, th5;
-  int num1[2], num2[2], num3[2], num4[2], num5[2];
+  int num1[2], num2[2], num3[2],num4[2],num5[2];
+
+  sem_init(&sem,0,1); //sem_init (ref a semaforo, 0- No compartido entre procesos, valor inicializacion (solo un hilo))
 
   sscanf(argv[1], "%d",&hilos);
   sscanf(argv[2], "%d", &limite);
@@ -54,7 +60,6 @@ int main(int argc, char* argv[])
   num5[0] = (4 * tramo) + 1; num5[1] = (5 * tramo);
   if(impar && hilos == 5) {num5[0] = (4 * tramo) + 1; num5[1] = (5 * tramo) + 1;}
 
-
   /* Two threads are created */
 
   pthread_create(&th1, NULL, partial_sum, (void*)num1);
@@ -64,8 +69,9 @@ int main(int argc, char* argv[])
   if (hilos > 4) pthread_create(&th5, NULL, partial_sum, (void*)num5);
 
   /* the main thread waits until both threads complete */
+
   pthread_join(th1, NULL);
-  if (hilos > 1) pthread_join(th2, NULL);
+  if(hilos > 1) pthread_join(th2, NULL);
   if(hilos > 2) pthread_join(th3, NULL);
   if(hilos > 3) pthread_join(th4, NULL);
   if(hilos > 4) pthread_join(th5, NULL);
