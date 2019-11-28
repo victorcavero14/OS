@@ -3,6 +3,16 @@
  *  you've read from the dev file
  */
 
+/*
+ * El error al realizar la orden '$ echo "Hello" > /dev/chardev'
+ * se debe a que hemos definido en la funcion de escritura del dispositivo (device_write ())
+ * que de error en sus escrituras, para hacer que solo sea posible leer.
+ *
+ * Este tipo de operaciones se guardan en la estructura file_operations
+ * y se asignan en funcion de su mayor y minor.
+ *
+ */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/fs.h>
