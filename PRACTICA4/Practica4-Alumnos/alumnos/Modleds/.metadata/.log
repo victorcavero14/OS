@@ -1,0 +1,24 @@
+!SESSION 2019-12-02 09:35:03.595 -----------------------------------------------
+eclipse.buildId=4.11.0.I20190307-0500
+java.version=1.8.0_201
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=es_ES
+Framework arguments:  -product org.eclipse.epp.package.java.product
+Command-line arguments:  -os linux -ws gtk -arch x86_64 -product org.eclipse.epp.package.java.product
+
+!ENTRY org.eclipse.egit.core 1 0 2019-12-02 09:36:30.037
+!MESSAGE Using Apache MINA sshd as ssh client.
+
+!ENTRY org.eclipse.core.resources 4 77 2019-12-02 09:46:48.791
+!MESSAGE Invalid project description.
+!SUBENTRY 1 unknown 0 0 2019-12-02 09:46:48.791
+!MESSAGE OK
+!SUBENTRY 1 org.eclipse.core.resources 4 77 2019-12-02 09:46:48.792
+!MESSAGE /home/victorcavero14/Escritorio/GitHub/OS/PRACTICA4/Practica4-Alumnos/alumnos/Modleds overlaps the workspace location: /home/victorcavero14/Escritorio/GitHub/OS/PRACTICA4/Practica4-Alumnos/alumnos/Modleds
+
+!ENTRY org.eclipse.core.resources 4 77 2019-12-02 09:47:23.558
+!MESSAGE Invalid project description.
+!SUBENTRY 1 unknown 0 0 2019-12-02 09:47:23.558
+!MESSAGE OK
+!SUBENTRY 1 org.eclipse.core.resources 4 77 2019-12-02 09:47:23.559
+!MESSAGE /home/victorcavero14/Escritorio/GitHub/OS/PRACTICA4/Practica4-Alumnos/alumnos/Modleds overlaps the workspace location: /home/victorcavero14/Escritorio/GitHub/OS/PRACTICA4/Practica4-Alumnos/alumnos/Modleds
