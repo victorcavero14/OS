@@ -1,4 +1,11 @@
 /*
+	Víctor Manuel Cavero Gracia - DNI: 45355080T
+	Iván Fernández Sánchez - DNI: 52902115E
+*/
+
+
+/*
+
  *  chardev.c: Creates a read-only char device that says how many times
  *  you've read from the dev file
  */
@@ -22,6 +29,10 @@
 #include <asm/uaccess.h>	/* for copy_to_user */
 #include <asm/io.h>
 
+#define SUCCESS 0
+#define DEVICE_NAME "leds"	/* Dev name as it appears in /proc/devices   */
+#define BUF_LEN 80		/* Max length of the message from the device */
+
 MODULE_LICENSE("GPL");
 
 /*
@@ -36,10 +47,6 @@ static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
 struct tty_driver* get_kbd_driver_handler(void);
 struct tty_driver* kbd_driver= NULL;
 static inline int set_leds(struct tty_driver* handler, unsigned int mask);
-
-#define SUCCESS 0
-#define DEVICE_NAME "leds"	/* Dev name as it appears in /proc/devices   */
-#define BUF_LEN 80		/* Max length of the message from the device */
 
 /*
  * Global variables are declared as static, so are global within the file.
