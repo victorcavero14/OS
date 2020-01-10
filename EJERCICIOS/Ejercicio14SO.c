@@ -9,7 +9,8 @@ int eating = 0, waiting = 0;
 void main(void)
 {
 	int i=0;
-	int constumer_id[N_CONSTUMERS];
+	int constumers_id[N_CONSTUMERS];
+
 	for(i = 0; i < N_CONSTUMERS; i++)
 	{
 		constumers_id[i] = i+1;
@@ -18,11 +19,11 @@ void main(void)
 	sem_init(&block, 0,0);
 	
 	for(i = 0; i < N_CONSTUMERS; i++)
-		pthread_create(&constumers[i],0, sushi_bar);
+		pthread_create(&constumers_id[i],0, sushi_bar);
 
 
 	for(i = 0; i < N_CONSTUMERS; i++)
-		pthread_join(&constumers[i], NULL);
+		pthread_join(&constumers_id[i], NULL);
 
 }
 
