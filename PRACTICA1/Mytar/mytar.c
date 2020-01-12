@@ -4,7 +4,7 @@
        
 #include "mytar.h"
        
-char use[]="Usage: tar -c|x -f file_mytar [file1 file2 ...]\n";
+char use[]="Usage: tar -c|x|l|r|a -f file_mytar [file1 file2 ...]\n";
 
 int main(int argc, char *argv[]) {
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
   //Parse command-line options
-  while((opt = getopt(argc, argv, "cxf:")) != -1) {
+  while((opt = getopt(argc, argv, "cxlraf:")) != -1) {
     switch(opt) {
       case 'c':
         flag=(flag==NONE)?CREATE:ERROR;
@@ -26,6 +26,15 @@ int main(int argc, char *argv[]) {
       case 'x':
         flag=(flag==NONE)?EXTRACT:ERROR;
         break;
+      case 'l':
+    	flag=(flag==NONE)?LIST:ERROR;
+    	break;
+      case 'r':
+    	flag=(flag==NONE)?REMOVE:ERROR;
+    	break;
+      case 'a':
+    	flag=(flag==NONE)?ADD:ERROR;
+    	break;
       case 'f':
         tarName = optarg;
         break;
@@ -59,6 +68,15 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
       }
       retCode=extractTar(tarName);
+      break;
+    case LIST:
+      retCode=listTar(tarName);
+      break;
+    case REMOVE:
+      retCode=removeFile(tarName, argv[optind]);
+      break;
+    case ADD:
+      retCode=addFile(tarName,argv[optind]);
       break;
     default:
       retCode=EXIT_FAILURE;
