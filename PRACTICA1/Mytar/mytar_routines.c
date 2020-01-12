@@ -18,8 +18,17 @@ int
 copynFile(FILE * origin, FILE * destination, int nBytes)
 {
 	// Complete the function
-	printf("HOLA TIO \n");
-	return -1;
+
+	int c,contador = 0;
+
+		/* Read file byte by byte */
+		while ((c = getc(origin)) != EOF && (contador < nBytes)) {
+			/* Print byte to stdout */
+			putc(c, destination);
+			contador++;
+		}
+
+	return contador;
 }
 
 /** Loads a string from a file.
@@ -37,7 +46,21 @@ char*
 loadstr(FILE * file)
 {
 	// Complete the function
-	return NULL;
+	int n, contador = 0;
+	char *buffer;
+
+	while((n!= EOF) && (n!=(int)'\0'))
+	{
+		n = getc(file);
+		contador++;
+		if(n == EOF) return NULL;
+	}
+
+	buffer = (char*)malloc(contador);
+	fseek(file, -contador, SEEK_CUR); //vuelve a la pos inicial
+	fread(buffer,1,contador, file);
+
+	return buffer;
 }
 
 /** Read tarball header and store it in memory.
@@ -53,7 +76,25 @@ stHeaderEntry*
 readHeader(FILE * tarFile, int *nFiles)
 {
 	// Complete the function
-	return NULL;
+	int i ;
+		stHeaderEntry *stH = NULL;
+		if(tarFile == NULL){
+			perror("Ha habido un problema con el tarFile");
+			return NULL;
+			}
+		else {
+			fread(nFiles, sizeof(int), 1, tarFile);
+
+			stH = (stHeaderEntry *) malloc(sizeof(stHeaderEntry) * (*nFiles));
+
+			for (i = 0; i < (*nFiles); i++) {
+				stH[i].name = loadstr(tarFile);
+				fread(&stH[i].size, sizeof(int), 1, tarFile);
+			}
+
+			return stH;
+		}
+
 }
 
 /** Creates a tarball archive 
@@ -81,8 +122,52 @@ int
 createTar(int nFiles, char *fileNames[], char tarName[])
 {
 	// Complete the function
-	copynFile(NULL,NULL,0);
-	return EXIT_FAILURE;
+	FILE *tFile, *iFile;
+	unsigned headerSize;
+	stHeaderEntry* header;
+
+	if(nFiles<=0){
+		fprintf (stderr, "%s", use);
+		return EXIT_FAILURE;
+	}
+
+	tFile= fopen(tarName, "wx");
+	headerSize = sizeof(int);
+	header = (stHeaderEntry*)malloc(sizeof(stHeaderEntry) *nFiles);
+
+	for(int i=0; i < nFiles; ++i){
+		int nameSize = strlen(fileNames[i]) + 1;
+		header[i].name = (char*)malloc(nameSize);
+		strcpy(header[i].name, fileNames[i]);
+		headerSize += nameSize + sizeof(header->size);
+
+	}
+
+	fseek(tFile, headerSize, SEEK_SET);
+	for(int i=0; i< nFiles; ++i){
+		iFile = fopen(fileNames[i], "r");
+		header[i].size = copynFile(iFile, tFile, INT_MAX);
+		fclose(iFile);
+	}
+
+	rewind(tFile);
+	fwrite(&nFiles, sizeof(int),1,tFile);
+
+	for(int i=0; i<nFiles; ++i){
+		fwrite(header[i].name, 1, strlen(header[i].name) + 1, tFile);
+		fwrite(&(header[i].size), sizeof(header[i].size), 1, tFile);
+	}
+
+	fprintf(stdout, "El archivo mtar se ha creado satisfactoriamente\n");
+
+	for(int i=0; i<nFiles;++i){
+		free(header[i].name);
+	}
+
+	free(header);
+	fclose(tFile);
+
+	return EXIT_SUCCESS;
 }
 
 /** Extract files stored in a tarball archive
@@ -103,5 +188,151 @@ int
 extractTar(char tarName[])
 {
 	// Complete the function
-	return EXIT_FAILURE;
+	FILE *tFile = NULL;
+	FILE *dFile = NULL;
+	int i;
+	unsigned char* c;
+	int nFiles;
+
+	stHeaderEntry *stH = NULL;
+	//stH = (stHeaderEntry *) malloc(sizeof(stHeaderEntry) * (nFiles));
+	tFile = fopen(tarName, "r");
+
+	if(tFile == NULL){
+		perror("Error en el archivo tar. Inténtalo de nuevo!");
+		return EXIT_FAILURE;
+	}
+
+	stH = readHeader(tFile, &nFiles);
+
+
+	for (i = 0; i < nFiles; i++) {
+
+		dFile = fopen(stH[i].name, "w");
+		if(dFile == NULL){
+			perror("Ha habido un error con el fichero destino.");
+			return EXIT_FAILURE;
+		}
+		else {
+			c = (unsigned char*) malloc(stH[i].size);
+			copynFile(tFile,dFile, stH[i].size);
+			fclose(dFile);
+		}
+	}
+
+	for (i = 0; i < nFiles; i++){
+		free(stH[i].name);
+	}
+
+	free(stH);
+
+	fclose(tFile);
+
+	printf("\nEnhorabuena !! El fichero se acaba de extraer correctamente\n\n");
+
+	return EXIT_SUCCESS;
+}
+
+//extension 1: listar ficheros del mtar
+
+int listTar(char tarName[])
+{
+	int ret = EXIT_SUCCESS, i = 0;
+	FILE* fo = fopen(tarName, "r");
+	int* nFiles = malloc(sizeof(int));
+	stHeaderEntry* stHE;
+
+	if(fo == NULL)
+	{
+		perror("Error al abrir el archivo");
+		ret = EXIT_FAILURE;
+	}
+	else
+	{
+		stHE = readHeader(fo,nFiles);
+
+		if(stHE == NULL) ret = EXIT_FAILURE;
+		else
+		{
+			printf("Existen en el .mtar %d archivos.\n\n", *nFiles);
+
+			for(; i < *nFiles; i++)
+			{
+				printf("Nombre del fichero %d : %s.\n", i,stHE[i].name);
+				printf("Tam del fichero %d : %d.\n\n", i,stHE[i].size);
+			}
+
+			free(stHE);
+		}
+
+		fclose(fo);
+	}
+
+	return ret;
+}
+
+//extension 2: add fichero de un mtar
+
+int addFile(char tarName[], char fileName[])
+{
+	int ret = EXIT_SUCCESS, i;
+	FILE* fo = fopen(tarName, "r");
+	int* nFiles = malloc(sizeof(int));
+	stHeaderEntry* stHE;
+	stHeaderEntry* stHEn;
+
+
+	if(fo == NULL)
+	{
+		perror("Error al abrir el archivo");
+		ret = EXIT_FAILURE;
+	}
+	else
+	{
+		stHE = readHeader(fo,nFiles);
+
+		if(stHE == NULL) ret = EXIT_FAILURE;
+		else
+		{
+			stHEn = (stHeaderEntry *) malloc(sizeof(stHeaderEntry) * (*nFiles + 1));
+
+			for(i = 0; i < *nFiles; i++)
+			{
+				stHEn[i].name = stHE[i].name;
+				stHEn[i].size = stHE[i].size;
+			}
+			stHEn[i].name = fileName;
+			stHEn[i].size = strlen(fileName); //mal habria que leer el ficheroo para saber su tammm
+
+			*nFiles = *nFiles + 1;
+
+			//Tenemos el Header nuevo faltan por copiar los datos
+
+
+
+
+
+
+
+
+
+			free(stHE);
+			free(stHEn);
+		}
+
+		fclose(fo);
+		}
+
+	return ret;
+}
+
+//extension 3: eliminar fichero de un mtar
+
+int removeFile(char tarName[], char fileName[])
+{
+	int ret = EXIT_SUCCESS;
+
+
+
+	return ret;
 }

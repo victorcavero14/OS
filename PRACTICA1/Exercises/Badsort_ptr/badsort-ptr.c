@@ -18,7 +18,7 @@ void sort(item *a, int n) {
     int s = 1;
     item* p;
 
-    for(; i < n & s != 0; i++) {
+    for(; (i < n) && (s != 0); i++) {
         s = 0;
         p = a;
         j = n-1;
@@ -29,7 +29,8 @@ void sort(item *a, int n) {
                 *(p+1) = t;
                 s++;
             }
-        } while ( --j >= 0 );
+            p++;
+        } while ( --j > 0 );
     }
 }
 
