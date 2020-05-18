@@ -8,7 +8,7 @@ This is a subject of the computer science degree of UCM.
 
 ## General Description 
 
-It includes a folder for each proyect, it based on UNIX development. We used Ubuntu 18.04 LTS and all the code has been written in C.
+It includes a folder for each project, it based on UNIX development. We used Ubuntu 18.04 LTS and all the code has been written in C.
 
 ## Author
 
